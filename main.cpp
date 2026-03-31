@@ -26,6 +26,10 @@ int main() {
       try { std::cout << dq.back() << "\n"; } catch (...) { std::cout << "error\n"; }
     } else if (op == "size") {
       std::cout << dq.size() << "\n";
+    } else if (op == "empty") {
+      std::cout << (dq.empty() ? 1 : 0) << "\n";
+    } else if (op == "clear") {
+      dq.clear();
     } else if (op == "at") {
       size_t i; std::cin >> i; try { std::cout << dq.at(i) << "\n"; } catch (...) { std::cout << "error\n"; }
     } else if (op == "get") {
@@ -40,4 +44,3 @@ int main() {
   }
   return 0;
 }
-
