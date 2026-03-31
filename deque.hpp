@@ -62,8 +62,10 @@ public:
     T &operator*() const { return *it; }
     T *operator->() const noexcept { return &(*it); }
 
-    bool operator==(const iterator &rhs) const { return it == rhs.it; }
-    bool operator!=(const iterator &rhs) const { return it != rhs.it; }
+    bool operator==(const iterator &rhs) const {
+      return owner == rhs.owner && it == rhs.it;
+    }
+    bool operator!=(const iterator &rhs) const { return !(*this == rhs); }
 
     friend class const_iterator;
     friend class deque<T>;
@@ -119,8 +121,10 @@ public:
     }
     const T &operator*() const { return *it; }
     const T *operator->() const noexcept { return &(*it); }
-    bool operator==(const const_iterator &rhs) const { return it == rhs.it; }
-    bool operator!=(const const_iterator &rhs) const { return it != rhs.it; }
+    bool operator==(const const_iterator &rhs) const {
+      return owner == rhs.owner && it == rhs.it;
+    }
+    bool operator!=(const const_iterator &rhs) const { return !(*this == rhs); }
     friend class deque<T>;
   };
 
