@@ -17,15 +17,18 @@ public:
   class iterator {
   private:
     typename std::deque<T>::iterator it;
+    std::deque<T> *owner = nullptr;
 
   public:
     iterator() = default;
-    explicit iterator(typename std::deque<T>::iterator i) : it(i) {}
+    explicit iterator(typename std::deque<T>::iterator i, std::deque<T> *o)
+        : it(i), owner(o) {}
 
-    iterator operator+(const int &n) const { return iterator(it + n); }
-    iterator operator-(const int &n) const { return iterator(it - n); }
+    iterator operator+(const int &n) const { return iterator(it + n, owner); }
+    iterator operator-(const int &n) const { return iterator(it - n, owner); }
 
     int operator-(const iterator &rhs) const {
+      if (owner != rhs.owner) throw invalid_iterator();
       return static_cast<int>(it - rhs.it);
     }
     iterator &operator+=(const int &n) {
@@ -69,15 +72,23 @@ public:
   class const_iterator {
   private:
     typename std::deque<T>::const_iterator it;
+    const std::deque<T> *owner = nullptr;
 
   public:
     const_iterator() = default;
-    explicit const_iterator(typename std::deque<T>::const_iterator i) : it(i) {}
-    const_iterator(const iterator &o) : it(o.it) {}
+    explicit const_iterator(typename std::deque<T>::const_iterator i,
+                            const std::deque<T> *o)
+        : it(i), owner(o) {}
+    const_iterator(const iterator &o) : it(o.it), owner(o.owner) {}
 
-    const_iterator operator+(const int &n) const { return const_iterator(it + n); }
-    const_iterator operator-(const int &n) const { return const_iterator(it - n); }
+    const_iterator operator+(const int &n) const {
+      return const_iterator(it + n, owner);
+    }
+    const_iterator operator-(const int &n) const {
+      return const_iterator(it - n, owner);
+    }
     int operator-(const const_iterator &rhs) const {
+      if (owner != rhs.owner) throw invalid_iterator();
       return static_cast<int>(it - rhs.it);
     }
     const_iterator &operator+=(const int &n) {
@@ -110,6 +121,7 @@ public:
     const T *operator->() const noexcept { return &(*it); }
     bool operator==(const const_iterator &rhs) const { return it == rhs.it; }
     bool operator!=(const const_iterator &rhs) const { return it != rhs.it; }
+    friend class deque<T>;
   };
 
   deque() = default;
@@ -137,22 +149,24 @@ public:
     return d.back();
   }
 
-  iterator begin() { return iterator(d.begin()); }
-  const_iterator cbegin() const { return const_iterator(d.cbegin()); }
-  iterator end() { return iterator(d.end()); }
-  const_iterator cend() const { return const_iterator(d.cend()); }
+  iterator begin() { return iterator(d.begin(), &d); }
+  const_iterator cbegin() const { return const_iterator(d.cbegin(), &d); }
+  iterator end() { return iterator(d.end(), &d); }
+  const_iterator cend() const { return const_iterator(d.cend(), &d); }
 
   bool empty() const { return d.empty(); }
   size_t size() const { return d.size(); }
   void clear() { d.clear(); }
 
   iterator insert(iterator pos, const T &value) {
+    if (pos.owner != &d) throw invalid_iterator();
     auto it = d.insert(pos.it, value);
-    return iterator(it);
+    return iterator(it, &d);
   }
   iterator erase(iterator pos) {
+    if (pos.owner != &d) throw invalid_iterator();
     auto it = d.erase(pos.it);
-    return iterator(it);
+    return iterator(it, &d);
   }
 
   void push_back(const T &value) { d.push_back(value); }
